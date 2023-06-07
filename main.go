@@ -1,0 +1,1 @@
+package pulumi_trino
