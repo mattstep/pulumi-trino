@@ -1,0 +1,3 @@
+name: pulumi-trino
+runtime: go
+description: Deploy Trino in an EKS cluster on AWS

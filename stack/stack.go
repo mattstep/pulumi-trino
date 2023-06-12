@@ -1,4 +1,4 @@
-package pulumi_trino
+package main
 
 import (
 	"github.com/pulumi/pulumi-awsx/sdk/go/awsx/ec2"
@@ -35,7 +35,7 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 		"example-trino-cluster",
 		helm.ChartArgs{
 			Namespace: pulumi.String("trino"),
-			Chart:     pulumi.String("trino/trino"),
+			Chart:     pulumi.String("trino"),
 			Version:   pulumi.String("0.10.2"),
 			FetchArgs: helm.FetchArgs{
 				Repo: pulumi.String("https://trinodb.github.io/charts"),
@@ -49,7 +49,7 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 	return nil
 }
 
-func main() {
+func deploy() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		cluster, err := createEks(ctx)
 		if err != nil {
