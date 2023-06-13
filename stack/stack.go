@@ -17,7 +17,7 @@ func createEks(ctx *pulumi.Context) (*eks.Cluster, error) {
 		VpcId:            eksVpc.VpcId,
 		PublicSubnetIds:  eksVpc.PublicSubnetIds,
 		PrivateSubnetIds: eksVpc.PrivateSubnetIds,
-		InstanceType:     pulumi.String("t4g.2xlarge"),
+		InstanceType:     pulumi.String("r6a.2xlarge"),
 		DesiredCapacity:  pulumi.Int(3),
 		MinSize:          pulumi.Int(3),
 		MaxSize:          pulumi.Int(10),
