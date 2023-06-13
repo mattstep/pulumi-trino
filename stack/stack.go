@@ -34,7 +34,6 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 	_, err := helm.NewChart(ctx,
 		"example-trino-cluster",
 		helm.ChartArgs{
-			Namespace: pulumi.String("trino"),
 			Chart:     pulumi.String("trino"),
 			Version:   pulumi.String("0.10.2"),
 			FetchArgs: helm.FetchArgs{
