@@ -8,6 +8,25 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
+func deploy() {
+	pulumi.Run(func(ctx *pulumi.Context) error {
+		cluster, err := createEks(ctx)
+		if err != nil {
+			return err
+		}
+
+		kubeProvider, err := kubernetes.NewProvider(ctx, "kubernetesProvider", &kubernetes.ProviderArgs{
+			Kubeconfig: cluster.KubeconfigJson,
+		}, pulumi.DependsOn([]pulumi.Resource{cluster}))
+		if err != nil {
+			return err
+		}
+
+		err = installTrinoHelmChart(ctx, kubeProvider)
+		return err
+	})
+}
+
 func createEks(ctx *pulumi.Context) (*eks.Cluster, error) {
 	var eksVpc, err = ec2.NewVpc(ctx, "trino-vpc", &ec2.VpcArgs{
 		EnableDnsHostnames: pulumi.Bool(true),
@@ -42,7 +61,6 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 			Values: pulumi.Map{
 				"service": pulumi.Map{
 					"type": pulumi.String("LoadBalancer"),
-					"port": pulumi.String("80"),
 				},
 			},
 		},
@@ -52,23 +70,4 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 		return err
 	}
 	return nil
-}
-
-func deploy() {
-	pulumi.Run(func(ctx *pulumi.Context) error {
-		cluster, err := createEks(ctx)
-		if err != nil {
-			return err
-		}
-
-		kubeProvider, err := kubernetes.NewProvider(ctx, "kubernetesProvider", &kubernetes.ProviderArgs{
-			Kubeconfig: cluster.KubeconfigJson,
-		}, pulumi.DependsOn([]pulumi.Resource{cluster}))
-		if err != nil {
-			return err
-		}
-
-		err = installTrinoHelmChart(ctx, kubeProvider)
-		return err
-	})
 }

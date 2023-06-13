@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	stackName := auto.FullyQualifiedStackName("mattstep", "pulumi-trino", "demo")
+	stackName := auto.FullyQualifiedStackName("mattstep", "pulumi-trino", "pulumiup")
 
 	repo := auto.GitRepo{
 		URL:         "https://github.com/mattstep/pulumi-trino.git",
