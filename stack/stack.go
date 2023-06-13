@@ -17,7 +17,7 @@ func createEks(ctx *pulumi.Context) (*eks.Cluster, error) {
 		VpcId:            eksVpc.VpcId,
 		PublicSubnetIds:  eksVpc.PublicSubnetIds,
 		PrivateSubnetIds: eksVpc.PrivateSubnetIds,
-		InstanceType:     pulumi.String("r6a.2xlarge"),
+		InstanceType:     pulumi.String("r6a.large"),
 		DesiredCapacity:  pulumi.Int(3),
 		MinSize:          pulumi.Int(3),
 		MaxSize:          pulumi.Int(10),
@@ -38,6 +38,12 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider) e
 			Version:   pulumi.String("0.10.2"),
 			FetchArgs: helm.FetchArgs{
 				Repo: pulumi.String("https://trinodb.github.io/charts"),
+			},
+			Values: pulumi.Map{
+				"service": pulumi.Map{
+					"type": pulumi.String("LoadBalancer"),
+					"port": pulumi.String("80"),
+				},
 			},
 		},
 		pulumi.Provider(provider))
