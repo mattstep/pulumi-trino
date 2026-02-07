@@ -3,6 +3,9 @@
 *.ipr
 *.iws
 
+# Go build output
+stack/stack
+
 # misc
 .DS_Store
 .env.local
