@@ -31,6 +31,18 @@ func deploy() {
 	})
 }
 
+func baseHelmValues() pulumi.Map {
+	return pulumi.Map{
+		"fullnameOverride": pulumi.String(trinoReleaseName),
+		"additionalConfigProperties": pulumi.Array{
+			pulumi.String("log.path=tcp://" + otelCollectorReleaseName + ":54525"),
+			pulumi.String("log.format=json"),
+			pulumi.String("tracing.enabled=true"),
+			pulumi.String("tracing.exporter.endpoint=http://" + otelCollectorReleaseName + ":4317"),
+		},
+	}
+}
+
 func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider, values pulumi.Map, otelCollector *helm.Release) error {
 	_, err := helm.NewRelease(ctx,
 		trinoReleaseName,

@@ -8,18 +8,6 @@ import (
 
 const otelCollectorReleaseName = "otel-collector"
 
-func baseHelmValues() pulumi.Map {
-	return pulumi.Map{
-		"fullnameOverride": pulumi.String(trinoReleaseName),
-		"additionalConfigProperties": pulumi.Array{
-			pulumi.String("log.path=tcp://" + otelCollectorReleaseName + ":54525"),
-			pulumi.String("log.format=json"),
-			pulumi.String("tracing.enabled=true"),
-			pulumi.String("tracing.exporter.endpoint=http://" + otelCollectorReleaseName + ":4317"),
-		},
-	}
-}
-
 func installOtelCollector(ctx *pulumi.Context, provider *kubernetes.Provider) (*helm.Release, error) {
 	return helm.NewRelease(ctx,
 		otelCollectorReleaseName,
