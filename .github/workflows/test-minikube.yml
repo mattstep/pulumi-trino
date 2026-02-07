@@ -1,0 +1,76 @@
+name: Test Trino on Minikube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-minikube:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: "-tags=minikube"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Pulumi CLI
+        run: curl -fsSL https://get.pulumi.com | sh && echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+        with:
+          cpus: 2
+          memory: 4096
+
+      - name: Deploy Trino via Pulumi
+        working-directory: stack
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ""
+        run: |
+          pulumi login --local
+          pulumi stack init test
+          pulumi up --yes
+
+      - name: Show cluster state
+        if: always()
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -A
+          echo "=== Services ==="
+          kubectl get svc -A
+          echo "=== Events ==="
+          kubectl get events --sort-by='.lastTimestamp' | tail -20
+
+      - name: Verify /v1/info returns 2xx
+        run: |
+          SVC_NAME=$(kubectl get svc -l app.kubernetes.io/name=trino -o jsonpath='{.items[0].metadata.name}')
+          echo "Found Trino service: $SVC_NAME"
+
+          kubectl port-forward "svc/$SVC_NAME" 8080:8080 &
+          PF_PID=$!
+          sleep 5
+
+          STATUS=$(curl -s -o /tmp/trino-info.json -w "%{http_code}" http://localhost:8080/v1/info)
+          echo "Trino /v1/info response status: $STATUS"
+          cat /tmp/trino-info.json | jq . || cat /tmp/trino-info.json
+
+          kill $PF_PID || true
+
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            echo "Health check passed!"
+          else
+            echo "Health check failed with status $STATUS"
+            exit 1
+          fi
+
+      - name: Cleanup
+        if: always()
+        working-directory: stack
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ""
+        run: pulumi destroy --yes || true
