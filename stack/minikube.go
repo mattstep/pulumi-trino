@@ -30,30 +30,30 @@ func createCluster(ctx *pulumi.Context) (pulumi.StringOutput, []pulumi.Resource,
 }
 
 func helmValues() pulumi.Map {
-	return pulumi.Map{
-		"service": pulumi.Map{
-			"type": pulumi.String("ClusterIP"),
-		},
-		"server": pulumi.Map{
-			"workers": pulumi.Int(0),
-			"config": pulumi.Map{
-				"query": pulumi.Map{
-					"maxMemory": pulumi.String("512MB"),
-				},
-			},
-		},
-		"coordinator": pulumi.Map{
-			"jvm": pulumi.Map{
-				"maxHeapSize": pulumi.String("1G"),
-			},
-			"config": pulumi.Map{
-				"nodeScheduler": pulumi.Map{
-					"includeCoordinator": pulumi.Bool(true),
-				},
-				"query": pulumi.Map{
-					"maxMemoryPerNode": pulumi.String("256MB"),
-				},
+	values := baseHelmValues()
+	values["service"] = pulumi.Map{
+		"type": pulumi.String("ClusterIP"),
+	}
+	values["server"] = pulumi.Map{
+		"workers": pulumi.Int(0),
+		"config": pulumi.Map{
+			"query": pulumi.Map{
+				"maxMemory": pulumi.String("256MB"),
 			},
 		},
 	}
+	values["coordinator"] = pulumi.Map{
+		"jvm": pulumi.Map{
+			"maxHeapSize": pulumi.String("512M"),
+		},
+		"config": pulumi.Map{
+			"nodeScheduler": pulumi.Map{
+				"includeCoordinator": pulumi.Bool(true),
+			},
+			"query": pulumi.Map{
+				"maxMemoryPerNode": pulumi.String("128MB"),
+			},
+		},
+	}
+	return values
 }

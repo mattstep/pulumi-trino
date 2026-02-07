@@ -35,9 +35,9 @@ func createCluster(ctx *pulumi.Context) (pulumi.StringOutput, []pulumi.Resource,
 }
 
 func helmValues() pulumi.Map {
-	return pulumi.Map{
-		"service": pulumi.Map{
-			"type": pulumi.String("LoadBalancer"),
-		},
+	values := baseHelmValues()
+	values["service"] = pulumi.Map{
+		"type": pulumi.String("LoadBalancer"),
 	}
+	return values
 }

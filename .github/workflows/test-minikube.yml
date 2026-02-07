@@ -46,6 +46,14 @@ jobs:
           echo "=== Events ==="
           kubectl get events --sort-by='.lastTimestamp' | tail -20
 
+      - name: Verify OTel collector is running
+        run: |
+          echo "=== OTel Collector Pod ==="
+          kubectl get pods -l app.kubernetes.io/name=opentelemetry-collector -o wide
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=opentelemetry-collector --timeout=60s
+          echo "=== OTel Collector Logs (last 20 lines) ==="
+          kubectl logs -l app.kubernetes.io/name=opentelemetry-collector --tail=20
+
       - name: Verify /v1/info returns 2xx
         run: |
           SVC_NAME=$(kubectl get svc -l app.kubernetes.io/name=trino -o jsonpath='{.items[0].metadata.name}')
@@ -67,6 +75,11 @@ jobs:
             echo "Health check failed with status $STATUS"
             exit 1
           fi
+
+      - name: Verify OTel collector received data
+        run: |
+          echo "=== OTel Collector Logs (checking for received data) ==="
+          kubectl logs -l app.kubernetes.io/name=opentelemetry-collector --tail=50
 
       - name: Cleanup
         if: always()

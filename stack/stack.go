@@ -6,6 +6,8 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
+const trinoReleaseName = "example-trino-cluster"
+
 func deploy() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		kubeconfig, dependsOn, err := createCluster(ctx)
@@ -20,15 +22,32 @@ func deploy() {
 			return err
 		}
 
-		return installTrinoHelmChart(ctx, kubeProvider, helmValues())
+		otelCollector, err := installOtelCollector(ctx, kubeProvider)
+		if err != nil {
+			return err
+		}
+
+		return installTrinoHelmChart(ctx, kubeProvider, helmValues(), otelCollector)
 	})
 }
 
-func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider, values pulumi.Map) error {
+func baseHelmValues() pulumi.Map {
+	return pulumi.Map{
+		"fullnameOverride": pulumi.String(trinoReleaseName),
+		"additionalConfigProperties": pulumi.Array{
+			pulumi.String("log.path=tcp://" + otelCollectorReleaseName + ":54525"),
+			pulumi.String("log.format=json"),
+			pulumi.String("tracing.enabled=true"),
+			pulumi.String("tracing.exporter.endpoint=http://" + otelCollectorReleaseName + ":4317"),
+		},
+	}
+}
+
+func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider, values pulumi.Map, otelCollector *helm.Release) error {
 	_, err := helm.NewRelease(ctx,
-		"example-trino-cluster",
+		trinoReleaseName,
 		&helm.ReleaseArgs{
-			Name:    pulumi.String("example-trino-cluster"),
+			Name:    pulumi.String(trinoReleaseName),
 			Chart:   pulumi.String("trino"),
 			Version: pulumi.String("1.42.0"),
 			RepositoryOpts: helm.RepositoryOptsArgs{
@@ -37,7 +56,8 @@ func installTrinoHelmChart(ctx *pulumi.Context, provider *kubernetes.Provider, v
 			Values:      values,
 			WaitForJobs: pulumi.Bool(true),
 		},
-		pulumi.Provider(provider))
+		pulumi.Provider(provider),
+		pulumi.DependsOn([]pulumi.Resource{otelCollector}))
 
 	return err
 }
