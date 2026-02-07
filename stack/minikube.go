@@ -31,6 +31,7 @@ func createCluster(ctx *pulumi.Context) (pulumi.StringOutput, []pulumi.Resource,
 
 func helmValues() pulumi.Map {
 	return pulumi.Map{
+		"fullnameOverride": pulumi.String(trinoReleaseName),
 		"service": pulumi.Map{
 			"type": pulumi.String("ClusterIP"),
 		},
@@ -54,6 +55,19 @@ func helmValues() pulumi.Map {
 					"maxMemoryPerNode": pulumi.String("256MB"),
 				},
 			},
+		},
+		"jmx": pulumi.Map{
+			"enabled": pulumi.Bool(true),
+			"exporter": pulumi.Map{
+				"enabled": pulumi.Bool(true),
+				"port":    pulumi.Int(5556),
+			},
+		},
+		"additionalConfigProperties": pulumi.Array{
+			pulumi.String("log.path=tcp://" + otelCollectorReleaseName + ":54525"),
+			pulumi.String("log.format=json"),
+			pulumi.String("tracing.enabled=true"),
+			pulumi.String("tracing.exporter.endpoint=http://" + otelCollectorReleaseName + ":4317"),
 		},
 	}
 }
