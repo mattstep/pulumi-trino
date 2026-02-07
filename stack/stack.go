@@ -55,6 +55,15 @@ func otelCollectorValues() pulumi.Map {
 		"image": pulumi.Map{
 			"repository": pulumi.String("otel/opentelemetry-collector-contrib"),
 		},
+		"resources": pulumi.Map{
+			"limits": pulumi.Map{
+				"memory": pulumi.String("128Mi"),
+			},
+			"requests": pulumi.Map{
+				"cpu":    pulumi.String("50m"),
+				"memory": pulumi.String("64Mi"),
+			},
+		},
 		"config": pulumi.Map{
 			"receivers": pulumi.Map{
 				"otlp": pulumi.Map{
@@ -89,8 +98,8 @@ func otelCollectorValues() pulumi.Map {
 				"batch": pulumi.Map{},
 				"memory_limiter": pulumi.Map{
 					"check_interval":  pulumi.String("5s"),
-					"limit_mib":       pulumi.Int(200),
-					"spike_limit_mib": pulumi.Int(50),
+					"limit_mib":       pulumi.Int(100),
+					"spike_limit_mib": pulumi.Int(25),
 				},
 			},
 			"exporters": pulumi.Map{

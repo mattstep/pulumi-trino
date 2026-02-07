@@ -25,7 +25,7 @@ jobs:
         uses: medyagh/setup-minikube@latest
         with:
           cpus: 2
-          memory: 5120
+          memory: 4096
 
       - name: Deploy Trino via Pulumi
         working-directory: stack

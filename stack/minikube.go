@@ -39,20 +39,20 @@ func helmValues() pulumi.Map {
 			"workers": pulumi.Int(0),
 			"config": pulumi.Map{
 				"query": pulumi.Map{
-					"maxMemory": pulumi.String("512MB"),
+					"maxMemory": pulumi.String("256MB"),
 				},
 			},
 		},
 		"coordinator": pulumi.Map{
 			"jvm": pulumi.Map{
-				"maxHeapSize": pulumi.String("1G"),
+				"maxHeapSize": pulumi.String("512M"),
 			},
 			"config": pulumi.Map{
 				"nodeScheduler": pulumi.Map{
 					"includeCoordinator": pulumi.Bool(true),
 				},
 				"query": pulumi.Map{
-					"maxMemoryPerNode": pulumi.String("256MB"),
+					"maxMemoryPerNode": pulumi.String("128MB"),
 				},
 			},
 		},
